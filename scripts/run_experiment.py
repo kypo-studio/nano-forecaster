@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from data.dataset import prepare_data
-from src.baselines import (arima_forecasts, fit_xgboost, naive_last,
+from src.baselines import (arima_forecasts, fit_xgboost, lag_calendar_features, naive_last,
                            predict_xgboost, seasonal_naive)
 from src.evaluate import result_table
 from src.mlp import MLPForecaster
@@ -30,6 +30,12 @@ def arrays(dataset):
     return torch.stack(xs).numpy(), torch.stack(ys).numpy()
 
 
+def origins_for(dataset, input_len: int):
+    base = dataset.dataset if isinstance(dataset, torch.utils.data.Subset) else dataset
+    indices = np.asarray(dataset.indices) if isinstance(dataset, torch.utils.data.Subset) else np.arange(len(base))
+    return base.starts[indices] + input_len
+
+
 def main(config_path: Path):
     config = yaml.safe_load(config_path.read_text())
     set_seed(config["seed"])
@@ -37,7 +43,7 @@ def main(config_path: Path):
     horizon = max(data_cfg["horizons"])
     dates, raw, scaled, columns, scaler, datasets, boundaries = prepare_data(
         ROOT / data_cfg["path"], data_cfg["input_len"], horizon, data_cfg["split_ratios"])
-    train_ds = limited(datasets["train"], data_cfg["max_train_windows"])
+    train_ds = limited(datasets["train"], data_cfg["max_train_windows"], evenly=True)
     val_ds = limited(datasets["val"], data_cfg["max_eval_windows"])
     test_ds = limited(datasets["test"], data_cfg["max_eval_windows"])
     n_features, target_index = len(columns), columns.index(data_cfg["target"])
@@ -57,16 +63,20 @@ def main(config_path: Path):
     timings["MLP"] = elapsed; counts["MLP"] = parameter_count(mlp)
 
     train_x, train_y = arrays(train_ds)
+    train_origins = origins_for(train_ds, data_cfg["input_len"])
+    test_origins = origins_for(test_ds, data_cfg["input_len"])
+    train_features = lag_calendar_features(train_x, dates, train_origins)
+    test_features = lag_calendar_features(inputs, dates, test_origins)
     started = time.perf_counter()
-    xgb_models = fit_xgboost(train_x, train_y, base_cfg["xgboost_estimators"],
+    xgb_models = fit_xgboost(train_features, train_y, base_cfg["xgboost_estimators"],
                              base_cfg["xgboost_max_depth"], base_cfg["xgboost_learning_rate"], config["seed"])
-    predictions["XGBoost"] = predict_xgboost(xgb_models, inputs)
+    predictions["XGBoost"] = predict_xgboost(xgb_models, test_features)
     timings["XGBoost"] = time.perf_counter() - started
 
     predictions["Naive"] = naive_last(inputs, target_index, horizon)
     predictions["SeasonalNaive"] = seasonal_naive(inputs, target_index, horizon)
 
-    origins = datasets["test"].starts[:len(test_ds)] + data_cfg["input_len"]
+    origins = test_origins
     series = scaled[:, target_index]
     for name, seasonal in [("ARIMA", None), ("SARIMA", tuple(base_cfg["sarima_seasonal_order"]))]:
         started = time.perf_counter()

@@ -2,6 +2,7 @@ __pycache__/
 *.py[cod]
 .venv/
 .pytest_cache/
+.cache/
 data/raw/*.csv
 results/*.png
 results/*.csv
@@ -9,4 +10,3 @@ results/*.md
 results/*.json
 results/checkpoints/
 !results/.gitkeep
-

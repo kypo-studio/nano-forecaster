@@ -14,6 +14,14 @@ for horizon, rows in table.groupby("horizon"):
     winner = rows.loc[rows.MAE.idxmin()]
     best[int(horizon)] = (winner["model"], winner["MAE"])
 analysis = "; ".join(f"H={h}: {m} (MAE {v:.4f})" for h, (m, v) in best.items())
+transformer_comparison = []
+for horizon, rows in table.groupby("horizon"):
+    transformer_mae = float(rows.loc[rows.model == "Transformer", "MAE"].iloc[0])
+    best_mae = float(rows.MAE.min())
+    transformer_comparison.append(
+        f"H={int(horizon)}: écart de {transformer_mae - best_mae:.4f} MAE face au meilleur modèle"
+    )
+comparison = "; ".join(transformer_comparison)
 
 readme = f"""# nano-forecaster
 
@@ -47,7 +55,8 @@ en compte {metadata['parameters']['MLP']}.
 ## Baselines
 
 Le protocole compare dernier point, naïve saisonnière 24 h, ARIMA, SARIMA, MLP et
-XGBoost sur les mêmes origines, cibles et horizons.
+XGBoost sur les mêmes origines, cibles et horizons. XGBoost reçoit les retards
+multivariés ainsi que l'heure, le jour de semaine et le mois en encodage cyclique.
 
 ## Résultats
 
@@ -62,9 +71,11 @@ XGBoost sur les mêmes origines, cibles et horizons.
 ## Analyse honnête
 
 Meilleur MAE observé par horizon: {analysis}.
+Le Transformer ne gagne sur aucun horizon dans ce run. Détail: {comparison}.
 Le temps mesuré d'entraînement du Transformer est
 {metadata['training_seconds']['Transformer']:.2f} s sur `{metadata['device']}`.
-Ces chiffres décrivent ce run précis et ne sont pas extrapolés.
+Ces chiffres décrivent ce run précis et ne sont pas extrapolés. MAPE exclut les
+cibles exactement nulles, pour lesquelles cette métrique est indéfinie.
 
 ## Limites
 
@@ -76,7 +87,7 @@ variance ni la généralisation inter-datasets. MAPE est instable près de zéro
 ## Reproduire
 
 ```bash
-python3 -m venv .venv
+python3.11 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
 bash scripts/run_all.sh configs/small.yaml
@@ -93,4 +104,3 @@ Apache License 2.0, voir `LICENSE`.
 if "—" in readme or "–" in readme:
     raise SystemExit("Forbidden dash character in README")
 (ROOT / "README.md").write_text(readme)
-

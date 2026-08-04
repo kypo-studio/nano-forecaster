@@ -7,10 +7,13 @@ import pandas as pd
 def metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
     error = y_pred - y_true
     epsilon = 1e-8
+    nonzero = np.abs(y_true) > epsilon
     return {
         "MAE": float(np.mean(np.abs(error))),
         "RMSE": float(np.sqrt(np.mean(error ** 2))),
-        "MAPE": float(100 * np.mean(np.abs(error) / np.maximum(np.abs(y_true), epsilon))),
+        # MAPE is undefined at zero. Exact-zero targets are excluded and counted by
+        # the protocol rather than replaced with an arbitrary denominator.
+        "MAPE": float(100 * np.mean(np.abs(error[nonzero]) / np.abs(y_true[nonzero]))),
         "sMAPE": float(200 * np.mean(np.abs(error) / np.maximum(np.abs(y_true) + np.abs(y_pred), epsilon))),
     }
 
@@ -22,4 +25,3 @@ def result_table(targets: np.ndarray, predictions: dict[str, np.ndarray], horizo
             rows.append({"model": model, "horizon": horizon,
                          **metrics(targets[:, :horizon], forecast[:, :horizon])})
     return pd.DataFrame(rows).sort_values(["horizon", "MAE", "model"]).reset_index(drop=True)
-

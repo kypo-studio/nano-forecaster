@@ -24,8 +24,11 @@ def choose_device(requested: str) -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def limited(dataset, limit):
-    return dataset if limit is None or len(dataset) <= limit else Subset(dataset, range(limit))
+def limited(dataset, limit, evenly: bool = False):
+    if limit is None or len(dataset) <= limit:
+        return dataset
+    indices = np.linspace(0, len(dataset) - 1, limit, dtype=int) if evenly else range(limit)
+    return Subset(dataset, indices)
 
 
 def train_model(model, train_dataset, val_dataset, config, seed: int):
@@ -80,4 +83,3 @@ def predict(model, dataset, batch_size: int, device: torch.device):
             outputs.append(model(x.to(device)).cpu().numpy())
             targets.append(y.numpy()); inputs.append(x.numpy())
     return np.concatenate(outputs), np.concatenate(targets), np.concatenate(inputs)
-

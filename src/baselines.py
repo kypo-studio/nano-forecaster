@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import warnings
 import numpy as np
+import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAX
-from xgboost import XGBRegressor
 
 
 def naive_last(inputs: np.ndarray, target_index: int, horizon: int) -> np.ndarray:
@@ -17,11 +17,27 @@ def seasonal_naive(inputs: np.ndarray, target_index: int, horizon: int, season: 
     return history[:, offsets]
 
 
+def lag_calendar_features(inputs: np.ndarray, dates: pd.DatetimeIndex,
+                          origins: np.ndarray) -> np.ndarray:
+    """Flatten lags and add cyclical calendar state known at forecast origin."""
+    origin_dates = dates[origins]
+    cycles = [(origin_dates.hour.to_numpy(), 24),
+              (origin_dates.dayofweek.to_numpy(), 7),
+              (origin_dates.month.to_numpy() - 1, 12)]
+    calendar = []
+    for values, period in cycles:
+        angle = 2 * np.pi * values / period
+        calendar.extend([np.sin(angle), np.cos(angle)])
+    return np.column_stack([inputs.reshape(len(inputs), -1), *calendar])
+
+
 def fit_xgboost(train_x: np.ndarray, train_y: np.ndarray, estimators: int,
                 max_depth: int, learning_rate: float, seed: int):
+    # Lazy import avoids loading XGBoost's OpenMP runtime during torch-only tests.
+    from xgboost import XGBRegressor
     # Multi-output direct forecasting: one independent boosted tree ensemble per step.
     models = []
-    features = train_x.reshape(len(train_x), -1)
+    features = train_x.reshape(len(train_x), -1) if train_x.ndim > 2 else train_x
     for step in range(train_y.shape[1]):
         model = XGBRegressor(n_estimators=estimators, max_depth=max_depth,
                              learning_rate=learning_rate, subsample=0.9,
@@ -32,7 +48,7 @@ def fit_xgboost(train_x: np.ndarray, train_y: np.ndarray, estimators: int,
 
 
 def predict_xgboost(models, inputs: np.ndarray) -> np.ndarray:
-    features = inputs.reshape(len(inputs), -1)
+    features = inputs.reshape(len(inputs), -1) if inputs.ndim > 2 else inputs
     return np.column_stack([model.predict(features) for model in models])
 
 
@@ -49,4 +65,3 @@ def arima_forecasts(series: np.ndarray, origins: np.ndarray, horizon: int,
             fitted = model.fit(disp=False, maxiter=50)
         predictions.append(fitted.forecast(horizon))
     return np.asarray(predictions)
-
