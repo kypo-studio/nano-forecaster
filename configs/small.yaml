@@ -1,0 +1,33 @@
+seed: 42
+data:
+  path: data/raw/ETTh1.csv
+  target: OT
+  input_len: 96
+  horizons: [24, 48, 96]
+  split_ratios: [0.7, 0.1, 0.2]
+  max_train_windows: 2048
+  max_eval_windows: 512
+model:
+  d_model: 32
+  n_heads: 4
+  n_layers: 1
+  d_ff: 64
+  dropout: 0.1
+  positional_encoding: sinusoidal
+training:
+  batch_size: 64
+  epochs: 2
+  patience: 2
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  device: auto
+baselines:
+  arima_order: [1, 0, 0]
+  sarima_seasonal_order: [1, 0, 0, 24]
+  arima_history: 336
+  xgboost_estimators: 40
+  xgboost_max_depth: 3
+  xgboost_learning_rate: 0.08
+  mlp_hidden: [64]
+output_dir: results
+
