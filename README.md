@@ -11,9 +11,9 @@ pas une revendication d'état de l'art.
 ETTh1 contient 17420 observations horaires. Le split temporel est
 strict, avec frontières aux indices 12194 et
 13935. Le normaliseur est ajusté sur le train uniquement.
-Le run rapporté utilise 4096 fenêtres train,
-64 validation et 64 test,
-avec la seed 42 et la configuration `configs/default.yaml`.
+Le run rapporté utilise 8192 fenêtres train,
+128 validation et 128 test,
+avec la seed 42 et la configuration `configs/long.yaml`.
 
 ## Architecture
 
@@ -37,27 +37,27 @@ multivariés ainsi que l'heure, le jour de semaine et le mois en encodage cycliq
 
 | model | horizon | MAE | RMSE | MAPE | sMAPE |
 | --- | --- | --- | --- | --- | --- |
-| ARIMA | 24 | 1.0489 | 1.3334 | 56.8008 | 49.2920 |
-| SARIMA | 24 | 1.0629 | 1.3495 | 57.7695 | 50.3507 |
-| Naive | 24 | 1.2240 | 1.5502 | 65.3857 | 59.4457 |
-| SeasonalNaive | 24 | 1.5282 | 1.8549 | 87.8313 | 68.1129 |
-| Transformer | 24 | 4.1853 | 4.3594 | 223.1382 | 95.9831 |
-| XGBoost | 24 | 4.3442 | 4.7082 | 231.6889 | 95.2568 |
-| MLP | 24 | 5.9748 | 6.2079 | 310.9857 | 111.3227 |
-| ARIMA | 48 | 1.1750 | 1.4351 | 58.6731 | 50.5312 |
-| SARIMA | 48 | 1.2377 | 1.5115 | 61.8776 | 53.0211 |
-| Naive | 48 | 1.5311 | 1.8757 | 75.4211 | 66.7472 |
-| SeasonalNaive | 48 | 1.6332 | 1.9098 | 85.1341 | 70.0762 |
-| Transformer | 48 | 4.2356 | 4.4268 | 215.2431 | 93.5866 |
-| XGBoost | 48 | 5.8135 | 6.2141 | 282.5437 | 105.7228 |
-| MLP | 48 | 6.1071 | 6.3852 | 304.8798 | 109.2390 |
-| ARIMA | 96 | 1.0949 | 1.3284 | 45.4974 | 42.1078 |
-| SARIMA | 96 | 1.1219 | 1.3774 | 47.0109 | 43.2373 |
-| SeasonalNaive | 96 | 1.3717 | 1.6954 | 61.4562 | 57.2663 |
-| Naive | 96 | 1.4243 | 1.7864 | 59.9222 | 59.2250 |
-| Transformer | 96 | 3.9160 | 4.1100 | 176.5223 | 83.5484 |
-| MLP | 96 | 5.9132 | 6.1586 | 257.4253 | 101.8592 |
-| XGBoost | 96 | 6.9705 | 7.2710 | 289.4379 | 109.0756 |
+| SARIMA | 24 | 0.9808 | 1.2486 | 46.1643 | 39.8982 |
+| ARIMA | 24 | 0.9912 | 1.2543 | 46.1416 | 39.9865 |
+| Naive | 24 | 1.1330 | 1.4406 | 52.9917 | 46.9395 |
+| SeasonalNaive | 24 | 1.3815 | 1.6695 | 67.1171 | 55.3644 |
+| XGBoost | 24 | 4.1532 | 4.5474 | 191.2434 | 85.0250 |
+| Transformer | 24 | 4.2102 | 4.3797 | 191.6749 | 88.3118 |
+| MLP | 24 | 7.1918 | 7.3837 | 308.6812 | 113.2427 |
+| ARIMA | 48 | 1.1012 | 1.3356 | 47.7821 | 41.9891 |
+| SARIMA | 48 | 1.1261 | 1.3732 | 49.4503 | 42.9918 |
+| Naive | 48 | 1.3482 | 1.6743 | 59.6955 | 52.5483 |
+| SeasonalNaive | 48 | 1.4051 | 1.6739 | 64.0825 | 55.3134 |
+| Transformer | 48 | 4.2312 | 4.4105 | 187.8767 | 87.1374 |
+| XGBoost | 48 | 5.8289 | 6.3043 | 250.4910 | 98.7790 |
+| MLP | 48 | 8.1780 | 8.4575 | 344.8114 | 117.1652 |
+| ARIMA | 96 | 1.0724 | 1.3285 | 38.4990 | 36.8905 |
+| SARIMA | 96 | 1.0768 | 1.3425 | 39.2434 | 37.1363 |
+| SeasonalNaive | 96 | 1.2484 | 1.5403 | 48.8360 | 46.8784 |
+| Naive | 96 | 1.3138 | 1.6535 | 49.5611 | 48.3004 |
+| Transformer | 96 | 4.0898 | 4.2660 | 163.4927 | 81.0755 |
+| XGBoost | 96 | 7.3227 | 7.7094 | 272.8322 | 106.0843 |
+| MLP | 96 | 9.2614 | 9.5597 | 346.3863 | 118.6603 |
 
 ![Erreur par horizon](results/error_by_horizon.png)
 
@@ -67,10 +67,10 @@ multivariés ainsi que l'heure, le jour de semaine et le mois en encodage cycliq
 
 ## Analyse honnête
 
-Meilleur MAE observé par horizon: H=24: ARIMA (MAE 1.0489); H=48: ARIMA (MAE 1.1750); H=96: ARIMA (MAE 1.0949).
-Le Transformer ne gagne sur aucun horizon dans ce run. Détail: H=24: écart de 3.1364 MAE face au meilleur modèle; H=48: écart de 3.0606 MAE face au meilleur modèle; H=96: écart de 2.8211 MAE face au meilleur modèle.
+Meilleur MAE observé par horizon: H=24: SARIMA (MAE 0.9808); H=48: ARIMA (MAE 1.1012); H=96: ARIMA (MAE 1.0724).
+Le Transformer ne gagne sur aucun horizon dans ce run. Détail: H=24: écart de 3.2294 MAE face au meilleur modèle; H=48: écart de 3.1301 MAE face au meilleur modèle; H=96: écart de 3.0174 MAE face au meilleur modèle.
 Le temps mesuré d'entraînement du Transformer est
-10.38 s sur `cpu`.
+19.39 s sur `cpu`.
 Ces chiffres décrivent ce run précis et ne sont pas extrapolés. MAPE exclut les
 cibles exactement nulles, pour lesquelles cette métrique est indéfinie.
 
