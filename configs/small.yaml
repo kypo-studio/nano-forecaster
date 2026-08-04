@@ -5,8 +5,8 @@ data:
   input_len: 96
   horizons: [24, 48, 96]
   split_ratios: [0.7, 0.1, 0.2]
-  max_train_windows: 2048
-  max_eval_windows: 512
+  max_train_windows: 1024
+  max_eval_windows: 32
 model:
   d_model: 32
   n_heads: 4
@@ -30,4 +30,3 @@ baselines:
   xgboost_learning_rate: 0.08
   mlp_hidden: [64]
 output_dir: results
-
