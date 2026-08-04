@@ -1,0 +1,28 @@
+{
+  "config": "configs/default.yaml",
+  "seed": 42,
+  "device": "cpu",
+  "python": "3.11.9",
+  "torch": "2.5.1",
+  "rows": 17420,
+  "splits": {
+    "train_end": 12194,
+    "val_end": 13935
+  },
+  "windows": {
+    "train": 4096,
+    "val": 64,
+    "test": 64
+  },
+  "parameters": {
+    "Transformer": 159840,
+    "MLP": 100640
+  },
+  "training_seconds": {
+    "Transformer": 10.37534795800002,
+    "MLP": 0.10466912499941827,
+    "XGBoost": 180.14634979199946,
+    "ARIMA": 2.697754000000714,
+    "SARIMA": 59.80357187499976
+  }
+}
