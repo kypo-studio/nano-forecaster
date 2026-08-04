@@ -7,7 +7,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-URL = "https://raw.githubusercontent.com/thuml/Autoformer/main/dataset/ETT-small/ETTh1.csv"
+URL = "https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETT-small/ETTh1.csv"
 
 
 def download(destination: Path, force: bool = False) -> Path:
@@ -35,4 +35,3 @@ if __name__ == "__main__":
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
     download(args.output, args.force)
-
