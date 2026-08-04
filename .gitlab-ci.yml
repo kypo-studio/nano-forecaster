@@ -1,0 +1,25 @@
+image: python:3.11-slim
+
+stages: [test, smoke]
+
+cache:
+  paths: [.cache/pip]
+
+before_script:
+  - python -m pip install --cache-dir .cache/pip -r requirements.txt
+
+unit-tests:
+  stage: test
+  script:
+    - python -m pytest -q
+
+cpu-smoke-benchmark:
+  stage: smoke
+  script:
+    - bash scripts/run_all.sh configs/small.yaml
+  artifacts:
+    when: always
+    paths:
+      - results/
+      - README.md
+
